@@ -1,0 +1,93 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+{% block title %}Reporte Mensual - {{ nombre_mes }} {{ año }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-month"></i> Reporte Mensual: {{ nombre_mes }} {{ año }}</h2>
+    <a href="{% url 'reporte_anual_fecha' año=año %}" class="btn btn-info">
+        <i class="bi bi-calendar-year"></i> Ver Anual
+    </a>
+</div>
+
+<!-- Resumen del mes -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Total Ingresos</h5>
+                <h2>${{ totales.ingresos|default:0|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5>Total Gastos</h5>
+                <h2>${{ totales.gastos|default:0|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Balance</h5>
+                <h2>${{ balance|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalle de transacciones -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-list-ul"></i> Detalle de Transacciones</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th>Forma de Pago</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for trans in transacciones %}
+                    <tr>
+                        <td>{{ trans.fecha|date:"d/m/Y" }}</td>
+                        <td>
+                            <a href="{% url 'historial_por_nombre' trans.nombre %}">{{ trans.nombre }}</a>
+                        </td>
+                        <td>
+                            <span class="badge" style="background-color: {{ trans.categoria.color }}">
+                                {{ trans.categoria.nombre }}
+                            </span>
+                        </td>
+                        <td class="{% if trans.tipo == 'entrada' %}ingreso{% else %}gasto{% endif %}">
+                            ${{ trans.monto|floatformat:2 }}
+                        </td>
+                        <td>
+                            {% if trans.estado == 'pagado' %}
+                                <span class="badge bg-success">Pagado</span>
+                            {% elif trans.estado == 'pendiente' %}
+                                <span class="badge bg-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ trans.get_forma_pago_display }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center">No hay transacciones este mes</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

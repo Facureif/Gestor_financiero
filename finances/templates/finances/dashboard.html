@@ -1,0 +1,285 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - Gestor Financiero{% endblock %}
+
+{% block content %}
+<!-- Notificaciones -->
+{% if total_no_leidas > 0 %}
+<div class="alert alert-warning alert-dismissible fade show">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-bell-fill fs-4 me-3"></i>
+        <div>
+            <strong>{{ total_no_leidas }} notificaciones sin leer.</strong>
+            <a href="{% url 'notificaciones' %}" class="alert-link ms-2">Ver todas →</a>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+{% endif %}
+
+<!-- Tarjetas principales - SIN íconos duplicados -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+            <div class="card-body">
+                <h6 class="mb-2">COBRADO ({{ mes_actual }})</h6>
+                <h3 class="mb-0">${{ total_cobrado|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+            <div class="card-body">
+                <h6 class="mb-2">PENDIENTE COBRAR</h6>
+                <h3 class="mb-0">${{ pendiente_cobrar|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;">
+            <div class="card-body">
+                <h6 class="mb-2">GASTOS ({{ mes_actual }})</h6>
+                <h3 class="mb-0">${{ total_gastos|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card" style="background: linear-gradient(135deg, #06b6d4, #0891b2); color: white;">
+            <div class="card-body">
+                <h6 class="mb-2">BALANCE</h6>
+                <h3 class="mb-0">${{ balance|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Próximos cobros -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="mb-0 fw-bold">
+                    <span class="bg-warning bg-opacity-25 p-2 rounded-circle me-2">📅</span>
+                    Próximos Cobros
+                </h5>
+            </div>
+            <div class="card-body pt-0">
+                {% for cobro in proximos_cobros %}
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3" style="background: var(--gray-50); transition: all 0.2s;">
+                    <div class="flex-grow-1">
+                        <strong class="fs-6">{{ cobro.nombre_cliente }}</strong>
+                        <br>
+                        <small class="text-muted">{{ cobro.plan }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-danger fw-bold fs-6">${{ cobro.saldo|floatformat:0|intcomma }}</div>
+                        <div class="mt-1">
+                            <span class="badge bg-warning text-dark me-2">{{ cobro.fecha_vencimiento|date:"d/m/Y" }}</span>
+                            <a href="{% url 'registrar_pago' cobro.id %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-cash"></i> Cobrar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-check fs-1"></i>
+                    <p class="mt-2">No hay cobros próximos</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximos gastos -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="mb-0 fw-bold">
+                    <span class="bg-danger bg-opacity-25 p-2 rounded-circle me-2">💸</span>
+                    Próximos Gastos
+                </h5>
+            </div>
+            <div class="card-body pt-0">
+                {% for gasto in proximos_gastos %}
+                <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded-3" style="background: var(--gray-50);">
+                    <div class="flex-grow-1">
+                        <strong class="fs-6">{{ gasto.nombre }}</strong>
+                        <br>
+                        <small class="text-muted">{{ gasto.categoria.nombre }}</small>
+                    </div>
+                    <div class="text-end">
+                        {% if gasto.monto %}
+                            <div class="text-danger fw-bold fs-6">${{ gasto.monto|floatformat:0|intcomma }}</div>
+                        {% else %}
+                            <div class="badge bg-secondary">S/M</div>
+                        {% endif %}
+                        <div class="mt-1">
+                            <span class="badge bg-info me-2">{{ gasto.fecha_vencimiento|date:"d/m/Y" }}</span>
+                            <a href="{% url 'pagar_gasto' gasto.id %}" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-lg"></i> Pagado
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-credit-card fs-1"></i>
+                    <p class="mt-2">No hay gastos próximos</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cobros vencidos -->
+{% if cobros_vencidos %}
+<div class="alert alert-danger shadow-sm mt-4">
+    <div class="d-flex align-items-center mb-3">
+        <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+        <h5 class="mb-0 fw-bold">⚠️ Cobros Vencidos</h5>
+    </div>
+    {% for cobro in cobros_vencidos %}
+    <div class="d-flex justify-content-between align-items-center py-2 border-bottom border-danger border-opacity-25">
+        <div>
+            <strong>{{ cobro.nombre_cliente }}</strong>
+            <span class="badge bg-danger ms-2">Vencido</span>
+        </div>
+        <div>
+            <span class="fw-bold me-3">${{ cobro.saldo|floatformat:0|intcomma }}</span>
+            <a href="{% url 'registrar_pago' cobro.id %}" class="btn btn-sm btn-light shadow-sm">
+                <i class="bi bi-cash"></i> Cobrar ahora
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row g-4 mt-2">
+    <!-- Gráfico -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-pie-chart-fill me-2"></i>
+                    Gastos por Categoría - {{ mes_actual }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="graficoCategorias" height="250"></canvas>
+                <div id="leyendaCategorias" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Efectividad -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Efectividad de Cobranza
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                {% if total_a_cobrar > 0 %}
+                    <div class="mb-4">
+                        <div class="display-1 fw-bold text-success">{{ porcentaje_cobranza|floatformat:1 }}%</div>
+                        <p class="text-muted">efectividad este mes</p>
+                    </div>
+                    <div class="progress mb-3" style="height: 35px; border-radius: 1rem; background: var(--gray-200);">
+                        <div class="progress-bar bg-success rounded-pill" style="width: {{ porcentaje_cobranza|floatformat:0 }}%; transition: width 1s ease;">
+                            <span class="fw-bold">${{ total_cobrado|floatformat:0|intcomma }}</span>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <small class="text-muted">Total a cobrar</small>
+                            <div class="fw-bold">${{ total_a_cobrar|floatformat:0|intcomma }}</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Faltante</small>
+                            <div class="fw-bold text-warning">${{ total_a_cobrar|add:total_cobrado|floatformat:0|intcomma }}</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="py-5">
+                        <i class="bi bi-bar-chart-steps fs-1 text-muted"></i>
+                        <p class="text-muted mt-3">No hay cobros registrados este mes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('graficoCategorias').getContext('2d');
+const categoriasData = {{ categorias_gastos_json|safe }};
+
+const colores = categoriasData.map(c => c.color);
+const nombres = categoriasData.map(c => c.nombre);
+const montos = categoriasData.map(c => c.total);
+
+if (montos.length > 0) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: nombres,
+            datasets: [{
+                data: montos,
+                backgroundColor: colores,
+                borderWidth: 3,
+                borderColor: '#fff',
+                hoverOffset: 15
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percent = ((value / total) * 100).toFixed(1);
+                            return `${label}: $${value.toLocaleString('es-AR')} (${percent}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
+        }
+    });
+}
+
+const leyenda = document.getElementById('leyendaCategorias');
+if (categoriasData.length > 0) {
+    leyenda.innerHTML = '<div class="row g-2">';
+    categoriasData.forEach(cat => {
+        leyenda.innerHTML += `
+            <div class="col-6">
+                <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: var(--gray-50);">
+                    <span>
+                        <span style="display:inline-block;width:12px;height:12px;background:${cat.color};border-radius:3px;margin-right:8px;"></span>
+                        <small class="fw-bold">${cat.nombre}</small>
+                    </span>
+                    <span class="fw-bold small">$${cat.total.toLocaleString('es-AR')}</span>
+                </div>
+            </div>`;
+    });
+    leyenda.innerHTML += '</div>';
+} else {
+    leyenda.innerHTML = '<p class="text-center text-muted my-3">No hay datos de gastos</p>';
+}
+</script>
+{% endblock %}

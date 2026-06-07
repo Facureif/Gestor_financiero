@@ -1,0 +1,169 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Cobros - Gestor Financiero{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-cash-stack text-success"></i> Cobranzas
+        </h2>
+        <p class="text-muted mt-1">{{ nombre_mes|default:'' }} {{ año_actual|default:'' }}</p>
+    </div>
+    <a href="{% url 'crear_cobro' %}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-circle"></i> Nuevo Cobro
+    </a>
+</div>
+
+<!-- Filtros simples: Mes/Año + Estado + Buscar -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Mes</label>
+                <select name="mes" class="form-select">
+                    <option value="">Todos</option>
+                    {% for num, nombre in meses %}
+                    <option value="{{ num }}" {% if filtros.mes == num %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Año</label>
+                <select name="año" class="form-select">
+                    <option value="">Todos</option>
+                    {% for año in años %}
+                    <option value="{{ año }}" {% if filtros.año == año %}selected{% endif %}>{{ año }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="pendiente" {% if filtros.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                    <option value="pagado" {% if filtros.estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                    <option value="parcial" {% if filtros.estado == 'parcial' %}selected{% endif %}>Parcial</option>
+                    <option value="vencido" {% if filtros.estado == 'vencido' %}selected{% endif %}>Vencido</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="buscar" class="form-control" 
+                       value="{{ filtros.buscar }}" placeholder="Cliente, sistema, plan...">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid gap-1">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'lista_cobros' %}" class="btn btn-secondary btn-sm">Limpiar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Totales -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card text-white" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+            <div class="card-body">
+                <h6>A COBRAR</h6>
+                <h3>${{ totales.total|default:0|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <div class="card-body">
+                <h6>COBRADO</h6>
+                <h3>${{ totales.pagado|default:0|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <div class="card-body">
+                <h6>PENDIENTE</h6>
+                <h3>${{ totales.pendiente|default:0|floatformat:0|intcomma }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Plan</th>
+                        <th>Total</th>
+                        <th>Pagado</th>
+                        <th>Saldo</th>
+                        <th>Vence</th>
+                        <th>Estado</th>
+                        <th>Comp.</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cobro in cobros %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'historial_cliente' cobro.nombre_cliente %}" class="text-decoration-none fw-bold">
+                                {{ cobro.nombre_cliente }}
+                            </a>
+                            <br><small class="text-muted">{{ cobro.sistema }}</small>
+                        </td>
+                        <td>{{ cobro.plan|default:"-" }}</td>
+                        <td>${{ cobro.monto_total|floatformat:0|intcomma }}</td>
+                        <td class="text-success">${{ cobro.monto_pagado|floatformat:0|intcomma }}</td>
+                        <td class="{% if cobro.saldo > 0 %}text-danger fw-bold{% endif %}">
+                            ${{ cobro.saldo|floatformat:0|intcomma }}
+                        </td>
+                        <td>{{ cobro.fecha_vencimiento|date:"d/m/Y" }}</td>
+                        <td>
+                            {% if cobro.estado == 'pagado' %}<span class="badge bg-success">Pagado</span>
+                            {% elif cobro.estado == 'pendiente' %}<span class="badge bg-warning text-dark">Pendiente</span>
+                            {% elif cobro.estado == 'parcial' %}<span class="badge bg-info">Parcial</span>
+                            {% elif cobro.estado == 'vencido' %}<span class="badge bg-danger">Vencido</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if cobro.comprobante %}
+                                <a href="{{ cobro.comprobante.url }}" target="_blank" class="btn btn-sm btn-outline-info">📎</a>
+                            {% else %}-{% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                {% if cobro.saldo > 0 %}
+                                <a href="{% url 'registrar_pago' cobro.id %}" class="btn btn-sm btn-success" title="Registrar pago">💰</a>
+                                {% endif %}
+                                <a href="{% url 'comprobante_pdf' cobro.id %}" class="btn btn-sm btn-outline-danger" title="Descargar comprobante PDF">
+                                    <i class="bi bi-file-pdf"></i>
+                                </a>
+                                <a href="{% url 'editar_cobro' cobro.id %}" class="btn btn-sm btn-warning" title="Editar">✏️</a>
+                                <a href="{% url 'eliminar_cobro' cobro.id %}" class="btn btn-sm btn-danger" title="Eliminar"
+                                onclick="return confirm('¿Eliminar?')">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5">
+                            <p class="text-muted">No hay cobros</p>
+                            <a href="{% url 'crear_cobro' %}" class="btn btn-primary">Crear cobro</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

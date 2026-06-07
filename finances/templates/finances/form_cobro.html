@@ -1,0 +1,287 @@
+{% extends 'finances/base.html' %}
+
+{% block title %}{% if cobro %}Editar{% else %}Nuevo{% endif %} Cobro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4>
+                    {% if cobro %}
+                        <i class="bi bi-pencil"></i> Editar Cobro
+                    {% else %}
+                        <i class="bi bi-plus-circle"></i> Nuevo Cobro
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Cliente + Nombre -->
+                    <div class="row mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label">Cliente (opcional)</label>
+                            <div class="input-group">
+                                <select name="cliente" class="form-select" id="clienteSelect">
+                                    <option value="">Sin cliente registrado...</option>
+                                    {% for c in clientes %}
+                                    <option value="{{ c.id }}" {% if cobro.cliente_id == c.id %}selected{% endif %}>
+                                        {{ c.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-outline-success" type="button" data-bs-toggle="modal" data-bs-target="#clienteModal" title="Nuevo cliente">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nombre del cliente *</label>
+                            <input type="text" name="nombre_cliente" class="form-control" required
+                                   value="{{ cobro.nombre_cliente|default:'' }}"
+                                   placeholder="Ej: Transportes SA">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sistema</label>
+                            <input type="text" name="sistema" class="form-control"
+                                   value="{{ cobro.sistema|default:'' }}"
+                                   placeholder="Concesionaria">
+                        </div>
+                    </div>
+
+                    <!-- Plan, Monto, Forma de pago -->
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Plan</label>
+                            <input type="text" name="plan" class="form-control"
+                                   value="{{ cobro.plan|default:'' }}" placeholder="Básico">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Monto Total *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="monto_total" class="form-control" 
+                                       step="0.01" required value="{{ cobro.monto_total|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Forma de Pago</label>
+                            <select name="forma_pago" class="form-select">
+                                <option value="transferencia" {% if cobro.forma_pago == 'transferencia' %}selected{% endif %}>🏦 Transferencia</option>
+                                <option value="efectivo" {% if cobro.forma_pago == 'efectivo' %}selected{% endif %}>💵 Efectivo</option>
+                                <option value="cheque" {% if cobro.forma_pago == 'cheque' %}selected{% endif %}>📝 Cheque</option>
+                                <option value="debito_automatico" {% if cobro.forma_pago == 'debito_automatico' %}selected{% endif %}>🔄 Débito Auto</option>
+                                <option value="otro" {% if cobro.forma_pago == 'otro' %}selected{% endif %}>🤷 Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            {% if cobro %}
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="pendiente" {% if cobro.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="pagado" {% if cobro.estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                                <option value="parcial" {% if cobro.estado == 'parcial' %}selected{% endif %}>Parcial</option>
+                                <option value="vencido" {% if cobro.estado == 'vencido' %}selected{% endif %}>Vencido</option>
+                                <option value="cancelado" {% if cobro.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Emisión</label>
+                            <input type="date" name="fecha_emision" class="form-control"
+                                   value="{{ cobro.fecha_emision|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Vencimiento *</label>
+                            <input type="date" name="fecha_vencimiento" class="form-control" required
+                                   value="{{ cobro.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
+                        </div>
+                    </div>
+
+                    <!-- Comprobante -->
+                    <div class="mb-3">
+                        <label class="form-label"><i class="bi bi-paperclip"></i> Comprobante</label>
+                        <input type="file" name="comprobante" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                        {% if cobro.comprobante %}
+                        <div class="mt-2">
+                            <a href="{{ cobro.comprobante.url }}" class="btn btn-sm btn-outline-info" target="_blank">
+                                <i class="bi bi-file-earmark"></i> Ver comprobante actual
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Recurrencia -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">⚙️ Configuración de Recurrencia</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="es_recurrente" class="form-check-input" 
+                                       id="es_recurrente" {% if cobro.es_recurrente %}checked{% endif %}>
+                                <label class="form-check-label" for="es_recurrente">
+                                    <strong>Es un cobro recurrente</strong>
+                                </label>
+                            </div>
+                            
+                            <div id="recurrencia_opciones" {% if not cobro.es_recurrente %}style="display: none;"{% endif %}>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Periodicidad</label>
+                                        <select name="periodicidad" class="form-select">
+                                            <option value="mensual" {% if cobro.periodicidad == 'mensual' %}selected{% endif %}>Mensual</option>
+                                            <option value="quincenal" {% if cobro.periodicidad == 'quincenal' %}selected{% endif %}>Quincenal</option>
+                                            <option value="bimestral" {% if cobro.periodicidad == 'bimestral' %}selected{% endif %}>Bimestral</option>
+                                            <option value="trimestral" {% if cobro.periodicidad == 'trimestral' %}selected{% endif %}>Trimestral</option>
+                                            <option value="semestral" {% if cobro.periodicidad == 'semestral' %}selected{% endif %}>Semestral</option>
+                                            <option value="anual" {% if cobro.periodicidad == 'anual' %}selected{% endif %}>Anual</option>
+                                        </select>
+                                    </div>
+                                    {% if not cobro %}
+                                    <div class="col-md-6">
+                                        <label class="form-label">Generar automáticamente</label>
+                                        <select name="meses_a_generar" class="form-select">
+                                            <option value="1">Solo este mes</option>
+                                            <option value="3">3 meses</option>
+                                            <option value="6" selected>6 meses</option>
+                                            <option value="12">12 meses (1 año)</option>
+                                        </select>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actualizar siguientes (solo edición) -->
+                    {% if cobro %}
+                    <div class="card mb-3 border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0">🔄 Actualizar siguientes</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check">
+                                <input type="checkbox" name="actualizar_siguientes" class="form-check-input" id="actualizar_siguientes">
+                                <label class="form-check-label" for="actualizar_siguientes">
+                                    <strong>Actualizar también el monto de los cobros siguientes</strong>
+                                </label>
+                                <br>
+                                <small class="text-muted">Si cambias el monto, se actualizará en todos los cobros posteriores de este cliente.</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Observaciones -->
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea name="observaciones" class="form-control" rows="2">{{ cobro.observaciones|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> 
+                            {% if cobro %}Actualizar Cobro{% else %}Crear Cobro(s){% endif %}
+                        </button>
+                        <a href="{% url 'lista_cobros' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nuevo Cliente Rápido -->
+<div class="modal fade" id="clienteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formClienteRapido">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">Nombre/Razón Social *</label>
+                        <input type="text" name="nombre" class="form-control" required id="clienteNombre">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Persona de Contacto</label>
+                        <input type="text" name="nombre_contacto" class="form-control">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Sistema</label>
+                            <input type="text" name="sistema" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Plan</label>
+                            <input type="text" name="plan" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-lg"></i> Guardar Cliente
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar/ocultar opciones de recurrencia
+document.getElementById('es_recurrente').addEventListener('change', function() {
+    document.getElementById('recurrencia_opciones').style.display = 
+        this.checked ? 'block' : 'none';
+});
+
+// Crear cliente desde modal vía AJAX
+document.getElementById('formClienteRapido').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "crear_cliente_ajax" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('clienteSelect');
+            const option = new Option(data.nombre, data.id);
+            option.selected = true;
+            select.add(option);
+            bootstrap.Modal.getInstance(document.getElementById('clienteModal')).hide();
+            document.getElementById('formClienteRapido').reset();
+            document.querySelector('[name="nombre_cliente"]').value = data.nombre;
+        }
+    });
+});
+
+// Autocompletar nombre al seleccionar cliente
+document.getElementById('clienteSelect').addEventListener('change', function() {
+    if (this.value) {
+        document.querySelector('[name="nombre_cliente"]').value = this.options[this.selectedIndex].text;
+    }
+});
+</script>
+{% endblock %}

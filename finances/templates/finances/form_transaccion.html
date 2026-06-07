@@ -1,0 +1,189 @@
+{% extends 'finances/base.html' %}
+
+{% block title %}{% if transaccion %}Editar{% else %}Nueva{% endif %} Transacción{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>
+                    {% if transaccion %}
+                        <i class="bi bi-pencil"></i> Editar Transacción
+                    {% else %}
+                        <i class="bi bi-plus-circle"></i> Nueva Transacción
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Datos principales -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre/Motivo *</label>
+                            <input type="text" name="nombre" class="form-control" required
+                                   value="{{ transaccion.nombre|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría *</label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="">Seleccionar categoría</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" 
+                                    {% if transaccion.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.icono }} {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Monto y tipo -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Monto</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="monto" class="form-control" 
+                                       step="0.01" min="0"
+                                       value="{{ transaccion.monto|default:'' }}"
+                                       placeholder="Opcional para pagos automáticos">
+                            </div>
+                            <small class="text-muted">Dejar vacío si es pago automático sin monto conocido</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tipo *</label>
+                            <select name="tipo" class="form-select" required>
+                                <option value="entrada" {% if transaccion.tipo == 'entrada' %}selected{% endif %}>
+                                    Entrada
+                                </option>
+                                <option value="salida" {% if transaccion.tipo == 'salida' %}selected{% endif %}>
+                                    Salida
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="pendiente" {% if transaccion.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="pagado" {% if transaccion.estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                                <option value="cancelado" {% if transaccion.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fechas y pago -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Fecha *</label>
+                            <input type="date" name="fecha" class="form-control" required
+                                   value="{{ transaccion.fecha|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Vencimiento</label>
+                            <input type="date" name="fecha_vencimiento" class="form-control"
+                                   value="{{ transaccion.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Forma de Pago</label>
+                            <select name="forma_pago" class="form-select">
+                                <option value="efectivo">💵 Efectivo</option>
+                                <option value="transferencia">🏦 Transferencia</option>
+                                <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                                <option value="tarjeta_debito">🏧 Tarjeta de Débito</option>
+                                <option value="debito_automatico">🔄 Débito Automático</option>
+                                <option value="cheque">📝 Cheque</option>
+                                <option value="otro">🤷 Otro</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Recurrencia -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Configuración de Recurrencia</h6>
+                            
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="es_recurrente" id="es_recurrente" 
+                                       class="form-check-input"
+                                       {% if transaccion.es_recurrente %}checked{% endif %}>
+                                <label class="form-check-label" for="es_recurrente">
+                                    <strong>Es un pago recurrente</strong>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="pago_automatico" id="pago_automatico" 
+                                       class="form-check-input"
+                                       {% if transaccion.pago_automatico %}checked{% endif %}>
+                                <label class="form-check-label" for="pago_automatico">
+                                    <strong>🏦 Pago automático (débito automático)</strong>
+                                </label>
+                                <br>
+                                <small class="text-muted">Marcar si el pago se debita automáticamente y no requiere acción manual</small>
+                            </div>
+                            
+                            <div id="recurrencia_opciones" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Periodicidad</label>
+                                        <select name="periodicidad" class="form-select">
+                                            <option value="mensual">Mensual</option>
+                                            <option value="semanal">Semanal</option>
+                                            <option value="quincenal">Quincenal</option>
+                                            <option value="bimestral">Bimestral</option>
+                                            <option value="trimestral">Trimestral</option>
+                                            <option value="semestral">Semestral</option>
+                                            <option value="anual">Anual</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Notificar</label>
+                                        <select name="notificar" class="form-select">
+                                            <option value="1">Sí</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Días antes</label>
+                                        <input type="number" name="dias_anticipacion" 
+                                               class="form-control" value="3" min="0" max="30">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Descripción y comprobante -->
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea name="descripcion" class="form-control" rows="2">{{ transaccion.descripcion|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+                        <a href="{% url 'lista_transacciones' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mostrar/ocultar opciones de recurrencia
+document.getElementById('es_recurrente').addEventListener('change', function() {
+    document.getElementById('recurrencia_opciones').style.display = 
+        this.checked ? 'block' : 'none';
+});
+
+// Si ya está marcado, mostrar opciones
+if (document.getElementById('es_recurrente').checked) {
+    document.getElementById('recurrencia_opciones').style.display = 'block';
+}
+</script>
+{% endblock %}

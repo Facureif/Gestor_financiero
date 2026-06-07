@@ -1,0 +1,51 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Eliminar Gasto{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4><i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación</h4>
+            </div>
+            <div class="card-body text-center">
+                <i class="bi bi-trash" style="font-size: 4rem; color: #e74c3c;"></i>
+                <h5 class="mt-3">¿Eliminar este gasto?</h5>
+                
+                <div class="card mt-3 bg-light">
+                    <div class="card-body">
+                        <p><strong>Concepto:</strong> {{ gasto.nombre }}</p>
+                        <p><strong>Categoría:</strong> {{ gasto.categoria.nombre }}</p>
+                        <p><strong>Monto:</strong> 
+                            {% if gasto.monto %}
+                                ${{ gasto.monto|floatformat:0|intcomma }}
+                            {% else %}
+                                Sin monto
+                            {% endif %}
+                        </p>
+                        <p><strong>Fecha:</strong> {{ gasto.fecha|date:"d/m/Y" }}</p>
+                        <p><strong>Estado:</strong> {{ gasto.get_estado_display }}</p>
+                        {% if gasto.es_recurrente %}
+                        <p><span class="badge bg-info">🔄 Recurrente</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p class="text-danger mt-3">Esta acción no se puede deshacer.</p>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Sí, eliminar
+                        </button>
+                        <a href="{% url 'lista_gastos' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

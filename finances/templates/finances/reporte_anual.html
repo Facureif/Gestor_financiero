@@ -1,0 +1,112 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+{% block title %}Reporte Anual {{ año }} - Gestor Financiero{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-year"></i> Reporte Anual: {{ año }}</h2>
+    <div class="btn-group">
+        <a href="{% url 'reporte_anual_fecha' año=año|add:'-1' %}" class="btn btn-outline-primary">
+            ← {{ año|add:'-1' }}
+        </a>
+        <a href="{% url 'reporte_anual_fecha' año=año|add:'1' %}" class="btn btn-outline-primary">
+            {{ año|add:'1' }} →
+        </a>
+    </div>
+</div>
+
+<!-- Resumen anual -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Total Ingresos {{ año }}</h5>
+                <h2>${{ total_ingresos|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <h5>Total Gastos {{ año }}</h5>
+                <h2>${{ total_gastos|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Balance Anuaaaaaaal</h5>
+                <h2>${{ balance_anual|floatformat:0|intcomma }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla mensual -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-table"></i> Resumen Mensual {{ año }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Mes</th>
+                        <th class="text-end">Ingresos</th>
+                        <th class="text-end">Gastos</th>
+                        <th class="text-end">Balance</th>
+                        <th class="text-center">Detalle</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mes in resumen_mensual %}
+                    <tr>
+                        <td><strong>{{ mes.nombre }}</strong></td>
+                        <td class="text-end">
+                            <span class="ingreso">${{ mes.ingresos|floatformat:0|intcomma }}</span>
+                        </td>
+                        <td class="text-end">
+                            <span class="gasto">${{ mes.gastos|floatformat:0|intcomma }}</span>
+                        </td>
+                        <td class="text-end">
+                            {% if mes.balance >= 0 %}
+                                <span class="ingreso">${{ mes.balance|floatformat:0|intcomma}}</span>
+                            {% else %}
+                                <span class="gasto">${{ mes.balance|floatformat:0|intcomma}}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'reporte_mensual_fecha' año=año mes=mes.mes %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-search"></i> Ver
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td><strong>TOTAL ANUAL</strong></td>
+                        <td class="text-end">
+                            <strong class="ingreso">${{ total_ingresos|floatformat:0|intcomma }}</strong>
+                        </td>
+                        <td class="text-end">
+                            <strong class="gasto">${{ total_gastos|floatformat:0|intcomma }}</strong>
+                        </td>
+                        <td class="text-end">
+                            {% if balance_anual >= 0 %}
+                                <strong class="ingreso">${{ balance_anual|floatformat:0|intcomma }}</strong>
+                            {% else %}
+                                <strong class="gasto">${{ balance_anual|floatformat:2 }}</strong>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends 'finances/base.html' %}
+
+{% block title %}{% if gasto %}Editar{% else %}Nuevo{% endif %} Gasto{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h4>
+                    {% if gasto %}
+                        <i class="bi bi-pencil"></i> Editar Gasto
+                    {% else %}
+                        <i class="bi bi-cash"></i> Nuevo Gasto
+                    {% endif %}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Concepto *</label>
+                            <input type="text" name="nombre" class="form-control" required
+                                   value="{{ gasto.nombre|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría *</label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="">Seleccionar categoría</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" 
+                                    {% if gasto.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.icono }} {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Monto</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" name="monto" class="form-control" 
+                                       step="0.01" value="{{ gasto.monto|default:'' }}"
+                                       placeholder="Opcional">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Fecha</label>
+                            <input type="date" name="fecha" class="form-control"
+                                   value="{{ gasto.fecha|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Vencimiento</label>
+                            <input type="date" name="fecha_vencimiento" class="form-control"
+                                   value="{{ gasto.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo_gasto" class="form-select">
+                                <option value="fijo" {% if gasto.tipo_gasto == 'fijo' %}selected{% endif %}>Fijo</option>
+                                <option value="servicio" {% if gasto.tipo_gasto == 'servicio' %}selected{% endif %}>Servicio</option>
+                                <option value="impuesto" {% if gasto.tipo_gasto == 'impuesto' %}selected{% endif %}>Impuesto</option>
+                                <option value="variable" {% if gasto.tipo_gasto == 'variable' %}selected{% endif %}>Variable</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Forma de Pago</label>
+                            <select name="forma_pago" class="form-select">
+                                <option value="efectivo">💵 Efectivo</option>
+                                <option value="transferencia">🏦 Transferencia</option>
+                                <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
+                                <option value="tarjeta_debito">🏧 Tarjeta de Débito</option>
+                                <option value="debito_automatico">🔄 Débito Automático</option>
+                                <option value="otro">🤷 Otro</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            {% if gasto %}
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="pendiente" {% if gasto.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="pagado" {% if gasto.estado == 'pagado' %}selected{% endif %}>Pagado</option>
+                                <option value="vencido" {% if gasto.estado == 'vencido' %}selected{% endif %}>Vencido</option>
+                                <option value="cancelado" {% if gasto.estado == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                            </select>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Comprobante -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-paperclip"></i> Comprobante
+                        </label>
+                        <input type="file" name="comprobante" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                        {% if gasto.comprobante %}
+                        <div class="mt-2">
+                            <small class="text-muted">Comprobante actual:</small>
+                            <a href="{{ gasto.comprobante.url }}" class="btn btn-sm btn-outline-info" target="_blank">
+                                <i class="bi bi-file-earmark"></i> Ver comprobante
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Recurrencia -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">⚙️ Configuración de Recurrencia</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="es_recurrente" class="form-check-input" id="es_recurrente"
+                                       {% if gasto.es_recurrente %}checked{% endif %}>
+                                <label class="form-check-label" for="es_recurrente">
+                                    <strong>Es un gasto recurrente</strong>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check mb-2">
+                                <input type="checkbox" name="pago_automatico" class="form-check-input" id="pago_automatico"
+                                       {% if gasto.pago_automatico %}checked{% endif %}>
+                                <label class="form-check-label" for="pago_automatico">
+                                    <strong>🏦 Pago automático (débito)</strong>
+                                </label>
+                            </div>
+                            
+                            <div id="recurrencia_opciones" {% if not gasto.es_recurrente %}style="display: none;"{% endif %}>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Periodicidad</label>
+                                        <select name="periodicidad" class="form-select">
+                                            <option value="mensual">Mensual</option>
+                                            <option value="bimestral">Bimestral</option>
+                                            <option value="trimestral">Trimestral</option>
+                                            <option value="anual">Anual</option>
+                                        </select>
+                                    </div>
+                                    {% if not gasto %}
+                                    <div class="col-md-6">
+                                        <label class="form-label">Generar automáticamente</label>
+                                        <select name="meses_a_generar" class="form-select">
+                                            <option value="1">Solo este mes</option>
+                                            <option value="3">3 meses</option>
+                                            <option value="6" selected>6 meses</option>
+                                            <option value="12">12 meses (1 año)</option>
+                                        </select>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea name="observaciones" class="form-control" rows="2">{{ gasto.observaciones|default:'' }}</textarea>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-save"></i> 
+                            {% if gasto %}Actualizar{% else %}Guardar Gasto(s){% endif %}
+                        </button>
+                        <a href="{% url 'lista_gastos' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('es_recurrente').addEventListener('change', function() {
+    document.getElementById('recurrencia_opciones').style.display = 
+        this.checked ? 'block' : 'none';
+});
+</script>
+{% endblock %}

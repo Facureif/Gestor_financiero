@@ -1,0 +1,104 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Resumen General - {{ nombre_mes }} {{ año }}{% endblock %}
+
+{% block content %}
+<h2><i class="bi bi-pie-chart"></i> Resumen General: {{ nombre_mes }} {{ año }}</h2>
+
+<!-- Selector -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-5">
+                <select name="mes" class="form-select">
+                    {% for num, nombre in meses %}
+                    <option value="{{ num }}" {% if mes == num %}selected{% endif %}>{{ nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <select name="año" class="form-select">
+                    {% for a in años %}
+                    <option value="{{ a }}" {% if año == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Ver</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- COBROS -->
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">📥 Cobros del Mes</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Total a Cobrar</h6>
+                    <h3>${{ total_a_cobrar|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Total Cobrado</h6>
+                    <h3 class="text-success">${{ total_cobrado|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Pendiente</h6>
+                    <h3 class="text-danger">${{ pendiente_cobros|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GASTOS -->
+<div class="card mb-4">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">📤 Gastos del Mes</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Total Gastos</h6>
+                    <h3>${{ total_gastos|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Gastos Pagados</h6>
+                    <h3 class="text-success">${{ gastos_pagados|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center">
+                    <h6>Gastos Pendientes</h6>
+                    <h3 class="text-warning">${{ gastos_pendientes|floatformat:0|intcomma }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BALANCE -->
+<div class="card">
+    <div class="card-header {% if balance >= 0 %}bg-primary{% else %}bg-danger{% endif %} text-white">
+        <h5 class="mb-0">💰 Balance del Mes</h5>
+    </div>
+    <div class="card-body text-center">
+        <h2 class="{% if balance >= 0 %}text-success{% else %}text-danger{% endif %}">
+            ${{ balance|floatformat:0|intcomma }}
+        </h2>
+        <p>Total Cobrado - Total Gastos</p>
+    </div>
+</div>
+{% endblock %}
