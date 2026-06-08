@@ -40,6 +40,7 @@ class Command(BaseCommand):
         cat_salud = Categoria.objects.get(usuario=user, nombre='Salud')
         cat_transporte = Categoria.objects.get(usuario=user, nombre='Transporte')
         cat_software = Categoria.objects.get(usuario=user, nombre='Software')
+        cat_varios = Categoria.objects.get(usuario=user, nombre='Varios')
         
         # ========== CLIENTES ==========
         clientes_data = [
@@ -83,19 +84,19 @@ class Command(BaseCommand):
         # ========== GASTOS FIJOS ==========
         gastos_data = [
             # (categoría, nombre, monto, tipo, pago_auto, periodicidad)
-            (cat_alquiler, 'Oficina Coworking', 120000, 'fijo', False, 'mensual'),
-            (cat_servicios, 'Electricidad Edesur', 25000, 'servicio', False, 'mensual'),
-            (cat_servicios, 'Agua AYSA', 8000, 'servicio', False, 'mensual'),
+            (cat_alquiler, 'Oficina', 120000, 'fijo', False, 'mensual'),
+            (cat_servicios, 'Luz', 25000, 'servicio', False, 'mensual'),
+            (cat_servicios, 'Agua', 8000, 'servicio', False, 'mensual'),
             (cat_susc, 'Internet + TV', 15000, 'fijo', True, 'mensual'),
             (cat_susc, 'Netflix Premium', 4500, 'fijo', True, 'mensual'),
             (cat_susc, 'Spotify', 1200, 'fijo', True, 'mensual'),
-            (cat_susc, 'Google Workspace', 8500, 'fijo', True, 'mensual'),
             (cat_salud, 'Obra Social OSDE', 45000, 'fijo', True, 'mensual'),
             (cat_impuestos, 'Monotributo', 35000, 'impuesto', False, 'mensual'),
             (cat_impuestos, 'Ingresos Brutos', 12000, 'impuesto', False, 'mensual'),
             (cat_software, 'Hosting VPS', 15000, 'fijo', True, 'mensual'),
             (cat_software, 'Dominios (.com.ar)', 3000, 'fijo', True, 'anual'),
-            (cat_transporte, 'Combustible', 30000, 'variable', False, 'unico'),
+            (cat_transporte, 'Nafta', 30000, 'variable', False, 'unico'),
+            (cat_varios, 'Comida', 10000, 'variable', False, 'unico'),
         ]
         
         for cat, nombre, monto, tipo, pago_auto, periodicidad in gastos_data:
