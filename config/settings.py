@@ -94,16 +94,22 @@ if os.environ.get('PYTHONANYWHERE_DOMAIN'):
     SESSION_COOKIE_SECURE = True
 
 
+import os
+
+# Ruta para archivos estáticos (siempre necesaria)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Para Render
 if os.environ.get('RENDER'):
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     
-    import dj_database_url
     DATABASES = {
-        'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
     
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'    
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  
