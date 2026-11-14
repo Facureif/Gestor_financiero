@@ -132,7 +132,7 @@ def dashboard(request):
         usuario=request.user,
         estado__in=['pendiente', 'parcial'],
         fecha_vencimiento__gte=hoy,
-        fecha_vencimiento__lte=hoy + timedelta(days=30)
+        fecha_vencimiento__lte=hoy + timedelta(days=14)
     ).select_related('cliente').order_by('fecha_vencimiento')
 
     cobros_vencidos = Cobro.objects.filter(
@@ -172,7 +172,7 @@ def dashboard(request):
         usuario=request.user,
         estado='pendiente',
         fecha_vencimiento__gte=hoy,
-        fecha_vencimiento__lte=hoy + timedelta(days=30)
+        fecha_vencimiento__lte=hoy + timedelta(days=14)
     ).select_related('categoria').order_by('fecha_vencimiento')
 
     balance = total_cobrado - total_gastos
