@@ -1,0 +1,157 @@
+{% extends 'finances/base.html' %}
+{% load humanize %}
+
+{% block title %}Clientes - Gestor Financiero{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-people text-primary"></i> Clientes
+        </h2>
+        <p class="text-muted mt-1 mb-0">Gestioná tus clientes y accedé a su historial</p>
+    </div>
+    <a href="{% url 'crear_cliente' %}" class="btn btn-success shadow-sm">
+        <i class="bi bi-person-plus"></i> Nuevo Cliente
+    </a>
+</div>
+
+<!-- Buscador -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-10">
+                <label class="form-label small text-muted">Buscar</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="buscar" class="form-control"
+                           value="{{ buscar }}"
+                           placeholder="Nombre, contacto, email...">
+                </div>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">Buscar</button>
+                {% if buscar %}
+                <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary" title="Limpiar">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Contacto</th>
+                        <th class="text-center">Cobros</th>
+                        <th class="text-end">Saldo Pendiente</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in clientes %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'historial_cliente' c.slug %}" class="text-decoration-none fw-bold">
+                                {{ c.nombre }}
+                            </a>
+                            {% if c.cuit %}
+                            <br><small class="text-muted">CUIT: {{ c.cuit }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if c.nombre_contacto %}
+                                <div class="small fw-bold">{{ c.nombre_contacto }}</div>
+                            {% endif %}
+                            
+                            {% if c.telefono %}
+                                <!-- ENLACE A WHATSAPP -->
+                                <a href="https://wa.me/{{ c.telefono|cut:' '|cut:'-' }}" target="_blank" class="text-decoration-none text-success d-inline-block mb-1" title="Enviar WhatsApp">
+                                    <small><i class="bi bi-whatsapp"></i> {{ c.telefono }}</small>
+                                </a>
+                                <br>
+                            {% endif %}
+                            
+                            {% if c.email %}
+                                <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ c.email }}" target="_blank" class="text-decoration-none text-primary" title="Enviar Email por Gmail">
+                                    <small><i class="bi bi-envelope"></i> {{ c.email }}</small>
+                                </a>
+                            {% endif %}
+                            
+                            {% if not c.nombre_contacto and not c.telefono and not c.email %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <!-- Cobros Actuales -->
+                            <span class="badge bg-secondary-subtle text-secondary" title="Cobros actuales o pasados">
+                                {{ c.cobros_actuales|default:0 }}
+                            </span>
+                            
+                            <!-- Cobros Futuros (Si los hay) -->
+                            {% if c.cobros_futuros %}
+                                <br><small class="text-info" title="Cobros programados para el futuro">
+                                    <i class="bi bi-calendar-event"></i> {{ c.cobros_futuros }} fut.
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <!-- SALDO REAL (Lo que debe hoy) -->
+                            {% if c.saldo_actual %}
+                                <span class="text-danger fw-bold">
+                                    ${{ c.saldo_actual|floatformat:0|intcomma }}
+                                </span>
+                            {% else %}
+                                <span class="text-success fw-bold">$0</span>
+                            {% endif %}
+                            
+                            <!-- SALDO FUTURO (Programado) -->
+                            {% if c.saldo_futuro %}
+                                <br><small class="text-info" title="Cobros programados para el futuro">
+                                    <i class="bi bi-calendar-event"></i> ${{ c.saldo_futuro|floatformat:0|intcomma }} fut.
+                                </small>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'historial_cliente' c.slug %}"
+                                   class="btn btn-outline-primary" title="Ver historial">
+                                    <i class="bi bi-clock-history"></i>
+                                </a>
+                                <a href="{% url 'editar_cliente' c.id %}"
+                                   class="btn btn-outline-warning" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-people fs-1 text-muted opacity-50"></i>
+                            <p class="mt-3 text-muted mb-2">
+                                {% if buscar %}
+                                    No se encontraron clientes con "{{ buscar }}"
+                                {% else %}
+                                    Todavía no tenés clientes registrados
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'crear_cliente' %}" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> Crear cliente
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

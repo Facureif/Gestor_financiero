@@ -113,3 +113,19 @@ if os.environ.get('RENDER'):
     
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'  
+
+
+# Modo desktop: usa SQLite y permite todo
+import os
+DESKTOP_MODE = not os.environ.get('PYTHONANYWHERE_DOMAIN')
+
+if DESKTOP_MODE:
+    DEBUG = True
+    ALLOWED_HOSTS = ['*']
+
+# Modo desktop
+import os
+if os.environ.get('DESKTOP_MODE'):
+    DEBUG = True
+    ALLOWED_HOSTS = ['*']    
+

@@ -4,10 +4,18 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
+    <div class="col-lg-9">
+
+        <!-- NUEVO BOTÓN VOLVER -->
+        <div class="mb-3">
+            <a href="{% url 'lista_gastos' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Volver a Gastos
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-danger text-white">
-                <h4>
+                <h4 class="mb-0">
                     {% if gasto %}
                         <i class="bi bi-pencil"></i> Editar Gasto
                     {% else %}
@@ -18,73 +26,117 @@
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    
-                    <div class="row mb-3">
+
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label">Concepto *</label>
+                            <label class="form-label small text-muted">Concepto *</label>
                             <input type="text" name="nombre" class="form-control" required
-                                   value="{{ gasto.nombre|default:'' }}">
+                                   value="{{ gasto.nombre|default:'' }}" placeholder="Ej: Compra de mercadería">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Categoría *</label>
-                            <select name="categoria" class="form-select" required>
-                                <option value="">Seleccionar categoría</option>
-                                {% for cat in categorias %}
-                                <option value="{{ cat.id }}" 
-                                    {% if gasto.categoria_id == cat.id %}selected{% endif %}>
-                                    {{ cat.icono }} {{ cat.nombre }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <label class="form-label small text-muted">Categoría *</label>
+                            <div class="input-group">
+                                <select name="categoria" class="form-select" id="categoriaSelect" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    {% for cat in categorias %}
+                                    <option value="{{ cat.id }}" {% if gasto.categoria_id == cat.id %}selected{% endif %}>
+                                        {{ cat.icono }} {{ cat.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#categoriaModal" title="Nueva categoría">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <!-- Tabla de Ítems -->
+                    <div class="card bg-light border-0 mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0"><i class="bi bi-list-task"></i> Detalle de Conceptos (Opcional)</h6>
+                                <button type="button" class="btn btn-sm btn-primary" id="btnAgregarItem">
+                                    <i class="bi bi-plus-lg"></i> Agregar Ítem
+                                </button>
+                            </div>
+                            <table class="table table-sm table-borderless align-middle" id="tablaItems">
+                                <thead>
+                                    <tr>
+                                        <th>Descripción</th>
+                                        <th style="width: 100px;">Cant.</th>
+                                        <th style="width: 150px;">Precio Unit.</th>
+                                        <th style="width: 120px;" class="text-end">Subtotal</th>
+                                        <th style="width: 50px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Si estamos editando y hay ítems, los mostramos -->
+                                    {% if gasto and gasto.items.exists %}
+                                        {% for item in gasto.items.all %}
+                                        <tr class="item-row">
+                                            <td><input type="text" name="item_descripcion[]" class="form-control form-control-sm" value="{{ item.descripcion }}"></td>
+                                            <td><input type="number" name="item_cantidad[]" class="form-control form-control-sm item-cant" value="{{ item.cantidad }}" step="1"></td>
+                                            <td><input type="number" name="item_precio[]" class="form-control form-control-sm item-precio" value="{{ item.precio_unitario }}" step="0.01"></td>
+                                            <td class="text-end item-subtotal fw-bold">${{ item.subtotal|floatformat:2 }}</td>
+                                            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-eliminar"><i class="bi bi-trash"></i></button></td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Si es nuevo o no tiene ítems, mostramos una fila vacía -->
+                                        <tr class="item-row">
+                                            <td><input type="text" name="item_descripcion[]" class="form-control form-control-sm" placeholder="Ej: Coca Cola"></td>
+                                            <td><input type="number" name="item_cantidad[]" class="form-control form-control-sm item-cant" value="1" step="1"></td>
+                                            <td><input type="number" name="item_precio[]" class="form-control form-control-sm item-precio" step="0.01"></td>
+                                            <td class="text-end item-subtotal fw-bold">$0.00</td>
+                                            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-eliminar"><i class="bi bi-trash"></i></button></td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
                         <div class="col-md-3">
-                            <label class="form-label">Monto</label>
+                            <!-- ACÁ ESTÁ EL CAMBIO CLAVE -->
+                            <label class="form-label small text-muted">Monto Total (Opcional)</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" name="monto" class="form-control" 
-                                       step="0.01" value="{{ gasto.monto|default:'' }}"
-                                       placeholder="Opcional">
+                                <input type="number" name="monto" id="inputMontoGasto" class="form-control"
+                                       step="0.01" min="0" value="{{ gasto.monto|default:'' }}"
+                                       placeholder="Dejar vacío si no sabés">
                             </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Si cargás ítems, se calcula solo.</small>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Fecha</label>
+                            <label class="form-label small text-muted">Fecha</label>
                             <input type="date" name="fecha" class="form-control"
                                    value="{{ gasto.fecha|date:'Y-m-d'|default:'' }}">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Vencimiento</label>
+                            <label class="form-label small text-muted">Vencimiento (Opcional)</label>
                             <input type="date" name="fecha_vencimiento" class="form-control"
                                    value="{{ gasto.fecha_vencimiento|date:'Y-m-d'|default:'' }}">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Tipo</label>
-                            <select name="tipo_gasto" class="form-select">
-                                <option value="fijo" {% if gasto.tipo_gasto == 'fijo' %}selected{% endif %}>Fijo</option>
-                                <option value="servicio" {% if gasto.tipo_gasto == 'servicio' %}selected{% endif %}>Servicio</option>
-                                <option value="impuesto" {% if gasto.tipo_gasto == 'impuesto' %}selected{% endif %}>Impuesto</option>
-                                <option value="variable" {% if gasto.tipo_gasto == 'variable' %}selected{% endif %}>Variable</option>
-                            </select>
-                        </div>
                     </div>
 
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label">Forma de Pago</label>
+                            <label class="form-label small text-muted">Forma de Pago</label>
                             <select name="forma_pago" class="form-select">
-                                <option value="efectivo">💵 Efectivo</option>
-                                <option value="transferencia">🏦 Transferencia</option>
-                                <option value="tarjeta_credito">💳 Tarjeta de Crédito</option>
-                                <option value="tarjeta_debito">🏧 Tarjeta de Débito</option>
-                                <option value="debito_automatico">🔄 Débito Automático</option>
-                                <option value="otro">🤷 Otro</option>
+                                <option value="efectivo" {% if gasto.forma_pago == 'efectivo' or not gasto %}selected{% endif %}>Efectivo</option>
+                                <option value="transferencia" {% if gasto.forma_pago == 'transferencia' %}selected{% endif %}>Transferencia</option>
+                                <option value="tarjeta_credito" {% if gasto.forma_pago == 'tarjeta_credito' %}selected{% endif %}>Tarjeta de Crédito</option>
+                                <option value="tarjeta_debito" {% if gasto.forma_pago == 'tarjeta_debito' %}selected{% endif %}>Tarjeta de Débito</option>
+                                <option value="debito_automatico" {% if gasto.forma_pago == 'debito_automatico' %}selected{% endif %}>Débito Automático</option>
+                                <option value="cheque" {% if gasto.forma_pago == 'cheque' %}selected{% endif %}>Cheque</option>
+                                <option value="otro" {% if gasto.forma_pago == 'otro' %}selected{% endif %}>Otro</option>
                             </select>
                         </div>
                         <div class="col-md-4">
                             {% if gasto %}
-                            <label class="form-label">Estado</label>
+                            <label class="form-label small text-muted">Estado</label>
                             <select name="estado" class="form-select">
                                 <option value="pendiente" {% if gasto.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
                                 <option value="pagado" {% if gasto.estado == 'pagado' %}selected{% endif %}>Pagado</option>
@@ -95,15 +147,13 @@
                         </div>
                     </div>
 
-                    <!-- Comprobante -->
                     <div class="mb-3">
-                        <label class="form-label">
+                        <label class="form-label small text-muted">
                             <i class="bi bi-paperclip"></i> Comprobante
                         </label>
                         <input type="file" name="comprobante" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
                         {% if gasto.comprobante %}
                         <div class="mt-2">
-                            <small class="text-muted">Comprobante actual:</small>
                             <a href="{{ gasto.comprobante.url }}" class="btn btn-sm btn-outline-info" target="_blank">
                                 <i class="bi bi-file-earmark"></i> Ver comprobante
                             </a>
@@ -112,41 +162,42 @@
                     </div>
 
                     <!-- Recurrencia -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <h6 class="mb-0">⚙️ Configuración de Recurrencia</h6>
-                        </div>
+                    <div class="card bg-light border-0 mb-3">
                         <div class="card-body">
+                            <h6 class="mb-3"><i class="bi bi-gear"></i> Configuración de Recurrencia</h6>
+
                             <div class="form-check mb-2">
-                                <input type="checkbox" name="es_recurrente" class="form-check-input" id="es_recurrente"
-                                       {% if gasto.es_recurrente %}checked{% endif %}>
+                                <input type="checkbox" name="es_recurrente" class="form-check-input"
+                                       id="es_recurrente" {% if gasto.es_recurrente %}checked{% endif %}>
                                 <label class="form-check-label" for="es_recurrente">
                                     <strong>Es un gasto recurrente</strong>
                                 </label>
                             </div>
-                            
-                            <div class="form-check mb-2">
-                                <input type="checkbox" name="pago_automatico" class="form-check-input" id="pago_automatico"
-                                       {% if gasto.pago_automatico %}checked{% endif %}>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="pago_automatico" class="form-check-input"
+                                       id="pago_automatico" {% if gasto.pago_automatico %}checked{% endif %}>
                                 <label class="form-check-label" for="pago_automatico">
-                                    <strong>🏦 Pago automático (débito)</strong>
+                                    <strong>Pago automático (débito)</strong>
                                 </label>
                             </div>
-                            
+
                             <div id="recurrencia_opciones" {% if not gasto.es_recurrente %}style="display: none;"{% endif %}>
-                                <div class="row">
+                                <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Periodicidad</label>
+                                        <label class="form-label small text-muted">Periodicidad</label>
                                         <select name="periodicidad" class="form-select">
-                                            <option value="mensual">Mensual</option>
-                                            <option value="bimestral">Bimestral</option>
-                                            <option value="trimestral">Trimestral</option>
-                                            <option value="anual">Anual</option>
+                                            <option value="unico" {% if gasto.periodicidad == 'unico' %}selected{% endif %}>Único</option>
+                                            <option value="mensual" {% if gasto.periodicidad == 'mensual' or not gasto %}selected{% endif %}>Mensual</option>
+                                            <option value="bimestral" {% if gasto.periodicidad == 'bimestral' %}selected{% endif %}>Bimestral</option>
+                                            <option value="trimestral" {% if gasto.periodicidad == 'trimestral' %}selected{% endif %}>Trimestral</option>
+                                            <option value="semestral" {% if gasto.periodicidad == 'semestral' %}selected{% endif %}>Semestral</option>
+                                            <option value="anual" {% if gasto.periodicidad == 'anual' %}selected{% endif %}>Anual</option>
                                         </select>
                                     </div>
                                     {% if not gasto %}
                                     <div class="col-md-6">
-                                        <label class="form-label">Generar automáticamente</label>
+                                        <label class="form-label small text-muted">Generar automáticamente</label>
                                         <select name="meses_a_generar" class="form-select">
                                             <option value="1">Solo este mes</option>
                                             <option value="3">3 meses</option>
@@ -161,17 +212,46 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Observaciones</label>
+                        <label class="form-label small text-muted">Observaciones</label>
                         <textarea name="observaciones" class="form-control" rows="2">{{ gasto.observaciones|default:'' }}</textarea>
                     </div>
 
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-save"></i> 
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger flex-grow-1">
+                            <i class="bi bi-save"></i>
                             {% if gasto %}Actualizar{% else %}Guardar Gasto(s){% endif %}
                         </button>
-                        <a href="{% url 'lista_gastos' %}" class="btn btn-secondary">Cancelar</a>
+                        <a href="{% url 'lista_gastos' %}" class="btn btn-outline-secondary">Cancelar</a>
                     </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nueva Categoría Rápida -->
+<div class="modal fade" id="categoriaModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-tag"></i> Nueva Categoría</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="categoriaError" class="alert alert-danger d-none"></div>
+                <form id="formCategoriaRapida">
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Nombre *</label>
+                        <input type="text" name="nombre" class="form-control" required placeholder="Ej: Luz, Internet...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">Icono (Emoji)</label>
+                        <input type="text" name="icono" class="form-control" required placeholder="Ej: 🍔, ⚡, 🚌" value="📦">
+                        <small class="text-muted">Copiá y pegá un emoji</small>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100" id="btnGuardarCategoria">
+                        <i class="bi bi-check-lg"></i> Guardar Categoría
+                    </button>
                 </form>
             </div>
         </div>
@@ -180,8 +260,115 @@
 
 <script>
 document.getElementById('es_recurrente').addEventListener('change', function() {
-    document.getElementById('recurrencia_opciones').style.display = 
+    document.getElementById('recurrencia_opciones').style.display =
         this.checked ? 'block' : 'none';
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tabla = document.getElementById('tablaItems').getElementsByTagName('tbody')[0];
+    const btnAgregar = document.getElementById('btnAgregarItem');
+    // FIX: Buscamos el input correcto "monto" (no "monto_total")
+    const inputTotal = document.getElementById('inputMontoGasto');
+
+    // Función para calcular totales
+    function calcularTotales() {
+        let totalGeneral = 0;
+        let hayItemsValidos = false;
+        const filas = tabla.getElementsByClassName('item-row');
+        
+        for (let fila of filas) {
+            const cant = parseFloat(fila.querySelector('.item-cant').value) || 0;
+            const precio = parseFloat(fila.querySelector('.item-precio').value) || 0;
+            const desc = fila.querySelector('[name="item_descripcion[]"]').value.trim();
+            
+            if (desc !== '' || precio > 0) hayItemsValidos = true;
+
+            const subtotal = cant * precio;
+            
+            fila.querySelector('.item-subtotal').textContent = '$' + subtotal.toLocaleString('es-AR', {minimumFractionDigits: 2});
+            totalGeneral += subtotal;
+        }
+        
+        // Actualiza el input principal de "Monto"
+        // Solo lo actualizamos si hay items válidos. Si no, lo dejamos como está.
+        if (inputTotal && hayItemsValidos) {
+            inputTotal.value = totalGeneral.toFixed(2);
+        }
+    }
+
+    // Inicializar cálculo si estamos editando un gasto existente
+    calcularTotales();
+
+    // Agregar fila
+    btnAgregar.addEventListener('click', function() {
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.classList.add('item-row');
+        nuevaFila.innerHTML = `
+            <td><input type="text" name="item_descripcion[]" class="form-control form-control-sm" placeholder="Ej: Coca Cola"></td>
+            <td><input type="number" name="item_cantidad[]" class="form-control form-control-sm item-cant" value="1" step="1"></td>
+            <td><input type="number" name="item_precio[]" class="form-control form-control-sm item-precio" step="0.01"></td>
+            <td class="text-end item-subtotal fw-bold">$0.00</td>
+            <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-eliminar"><i class="bi bi-trash"></i></button></td>
+        `;
+        tabla.appendChild(nuevaFila);
+    });
+
+    // Eliminar fila y recalcular
+    tabla.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-eliminar')) {
+            e.target.closest('tr').remove();
+            calcularTotales();
+        }
+    });
+
+    // Recalcular cuando se escribe
+    tabla.addEventListener('input', function(e) {
+        if (e.target.classList.contains('item-cant') || e.target.classList.contains('item-precio')) {
+            calcularTotales();
+        }
+    });
+});
+
+// Crear categoría rápida vía AJAX
+document.getElementById('formCategoriaRapida').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardarCategoria');
+    const errDiv = document.getElementById('categoriaError');
+    errDiv.classList.add('d-none');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
+
+    const formData = new FormData(this);
+
+    fetch('{% url "crear_categoria_ajax" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const select = document.getElementById('categoriaSelect');
+            const option = new Option(`${data.icono} ${data.nombre}`, data.id);
+            option.selected = true;
+            select.add(option);
+            
+            bootstrap.Modal.getInstance(document.getElementById('categoriaModal')).hide();
+            document.getElementById('formCategoriaRapida').reset();
+        } else {
+            errDiv.textContent = data.error || 'No se pudo crear la categoría.';
+            errDiv.classList.remove('d-none');
+        }
+    })
+    .catch(err => {
+        errDiv.textContent = 'Error de conexión. Intentá de nuevo.';
+        errDiv.classList.remove('d-none');
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar Categoría';
+    });
 });
 </script>
 {% endblock %}

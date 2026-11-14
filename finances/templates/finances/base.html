@@ -43,7 +43,7 @@
             overflow-x: hidden;
         }
 
-        /* Navbar moderno */
+        /* Navbar superior */
         .navbar {
             background: rgba(15, 23, 42, 0.95) !important;
             backdrop-filter: blur(10px);
@@ -61,6 +61,8 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent !important;
+            display: flex;
+            align-items: center;
         }
         
         .navbar-brand i {
@@ -70,53 +72,81 @@
             color: var(--accent) !important;
             margin-right: 8px;
         }
+
+        /* Botón Hamburguesa */
+        .navbar-toggler {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 0.5rem 0.75rem;
+            font-size: 1.25rem;
+            color: white;
+        }
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.5);
+        }
+        .navbar-dark .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* === ESTILOS DEL MENÚ LATERAL (OFFCANVAS) === */
+        .offcanvas {
+            background-color: var(--primary);
+            color: white;
+            border-left: 1px solid rgba(255,255,255,0.1); /* CAMBIADO A LEFT */
+            box-shadow: var(--shadow-lg);
+            width: 320px !important;
+        }
         
-        .navbar-nav {
-            align-items: center;
+        .offcanvas-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1.5rem;
+        }
+        
+        .offcanvas-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
         }
         
         .nav-link {
             font-weight: 500;
             transition: all 0.2s ease;
             border-radius: var(--radius-md);
-            padding: 0.5rem 1rem !important;
-            margin: 0 2px;
-            color: rgba(255,255,255,0.9) !important;
+            padding: 0.75rem 1rem !important;
+            margin-bottom: 0.25rem;
+            color: rgba(255,255,255,0.8) !important;
+            display: flex;
+            align-items: center;
         }
         
-        .nav-link:hover {
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+        
+        .nav-link:hover, .nav-link.active {
             background: rgba(59,130,246,0.2);
             color: white !important;
         }
         
-        /* Dropdown menu corregido */
-        .dropdown-menu {
-            border: none;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            min-width: 200px;
+        /* Submenú de Resúmenes */
+        .submenu {
+            border-left: 2px solid rgba(255,255,255,0.1);
+            margin-left: 2rem;
+            padding-left: 1rem;
         }
         
-        .dropdown-item {
-            border-radius: var(--radius-md);
-            padding: 0.5rem 1rem;
-            transition: all 0.2s;
-            font-weight: 500;
+        .submenu .nav-link {
+            padding: 0.5rem 1rem !important;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.6) !important;
         }
         
-        .dropdown-item:hover {
-            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-            color: white;
+        .submenu .nav-link:hover {
+            color: white !important;
+            background: transparent;
             transform: translateX(5px);
-        }
-        
-        .dropdown-divider {
-            margin: 0.5rem 0;
-            border-color: var(--gray-200);
         }
 
         /* Tarjetas glassmorph */
@@ -241,22 +271,10 @@
             font-size: 0.75rem;
         }
         
-        .bg-success {
-            background: linear-gradient(135deg, var(--success), #059669) !important;
-        }
-        
-        .bg-danger {
-            background: linear-gradient(135deg, var(--danger), #dc2626) !important;
-        }
-        
-        .bg-warning {
-            background: linear-gradient(135deg, var(--warning), #d97706) !important;
-            color: #1e293b !important;
-        }
-        
-        .bg-info {
-            background: linear-gradient(135deg, var(--info), #0891b2) !important;
-        }
+        .bg-success { background: linear-gradient(135deg, var(--success), #059669) !important; }
+        .bg-danger { background: linear-gradient(135deg, var(--danger), #dc2626) !important; }
+        .bg-warning { background: linear-gradient(135deg, var(--warning), #d97706) !important; color: #1e293b !important; }
+        .bg-info { background: linear-gradient(135deg, var(--info), #0891b2) !important; }
 
         /* Botones */
         .btn {
@@ -324,14 +342,8 @@
 
         /* Animaciones */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .card, .metric-card, .alert {
@@ -341,168 +353,107 @@
         .table tbody tr {
             animation: fadeInUp 0.3s ease-out backwards;
         }
-        
-        .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
-        .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
-        .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
-        .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
-        .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--gray-100);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--gray-600);
-            border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary);
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--gray-600); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .metric-card h3 {
-                font-size: 1.5rem;
-            }
-            
-            .table-responsive {
-                border-radius: var(--radius-md);
-            }
-            
-            .btn-group .btn {
-                padding: 0.25rem 0.5rem;
-            }
-            
-            .card-header h5 {
-                font-size: 1rem;
-            }
-            
-            .navbar-nav {
-                margin-top: 1rem;
-            }
-            
-            .dropdown-menu {
-                background: rgba(15, 23, 42, 0.95);
-                backdrop-filter: blur(10px);
-            }
-            
-            .dropdown-item {
-                color: white;
-            }
-            
-            .dropdown-item:hover {
-                background: var(--accent);
-            }
-        }
-        
         /* Utilidades */
-        .container {
-            max-width: 1400px;
-            padding: 0 1.5rem;
-        }
+        .container { max-width: 1400px; padding: 0 1.5rem; }
+        .mt-4 { margin-top: 1.5rem !important; }
+        .mb-4 { margin-bottom: 1.5rem !important; }
         
-        .mt-4 {
-            margin-top: 1.5rem !important;
-        }
-        
-        .mb-4 {
-            margin-bottom: 1.5rem !important;
-        }
-        
-        /* Fix para que el dropdown no se corte */
-        .navbar-expand-lg .navbar-nav .dropdown-menu {
-            position: absolute;
-        }
     </style>
 </head>
 <body>
     
-    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-        <div class="container">
+    <!-- BARRA SUPERIOR -->
+    <nav class="navbar navbar-dark mb-4">
+        <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand" href="{% url 'dashboard' %}">
                 <i class="bi bi-wallet2"></i> Gestor Financiero
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_cobros' %}">
-                            <i class="bi bi-cash-stack"></i> Cobros
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'lista_gastos' %}">
-                            <i class="bi bi-receipt"></i> Gastos
-                        </a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-graph-up"></i> Resúmenes
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'resumen_general' %}">
-                                <i class="bi bi-file-earmark-bar-graph"></i> General Mensual
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'resumen_general_anual' %}">
-                                <i class="bi bi-calendar-year"></i> General Anual
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'resumen_mensual' %}">
-                                <i class="bi bi-cash-coin"></i> Cobros Mensual
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'resumen_anual' %}">
-                                <i class="bi bi-graph-up-arrow"></i> Cobros Anual
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'notificaciones' %}">
-                            <i class="bi bi-bell"></i> Notificaciones
-                        </a>
-                    </li>
-                    
-                    <!-- SEPARADOR Y USUARIO (dentro del collapse) -->
-                    <li class="nav-item d-lg-none"><hr class="dropdown-divider bg-light"></li>
-                    <li class="nav-item d-lg-none">
-                        <span class="nav-link text-white-50">
-                            <i class="bi bi-person-circle"></i> {{ user.username }}
-                        </span>
-                    </li>
-                    <li class="nav-item d-lg-none">
-                        <a class="nav-link" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Cerrar sesión
-                        </a>
-                    </li>
-                </ul>
-                
-                <!-- USUARIO EN DESKTOP -->
-                <div class="d-none d-lg-flex align-items-center ms-3">
-                    <span class="text-white me-3">
-                        <i class="bi bi-person-circle"></i> {{ user.username }}
-                    </span>
-                    <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-box-arrow-right"></i> Salir
-                    </a>
-                </div>
-            </div>
         </div>
     </nav>
+
+    <!-- MENÚ LATERAL DESPLEGABLE (OFFCANVAS) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title fw-bold" id="offcanvasNavbarLabel">
+                <i class="bi bi-wallet2 text-primary me-2"></i> Menú
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="navbar-nav flex-grow-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'calendario' %}">
+                        <i class="bi bi-calendar3"></i> Calendario
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lista_cobros' %}">
+                        <i class="bi bi-cash-stack"></i> Cobros
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lista_gastos' %}">
+                        <i class="bi bi-receipt"></i> Gastos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'lista_clientes' %}">
+                        <i class="bi bi-people"></i> Clientes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'vencidos_impagos' %}">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Vencidos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'notificaciones' %}">
+                        <i class="bi bi-bell"></i> Notificaciones
+                    </a>
+                </li>
+                
+                <!-- SUBMENÚ RESÚMENES -->
+                <li class="nav-item mt-2">
+                    <a class="nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#menuResumenes" role="button" aria-expanded="false">
+                        <span><i class="bi bi-graph-up"></i> Resúmenes</span>
+                        <i class="bi bi-chevron-down" style="font-size: 0.8rem;"></i>
+                    </a>
+                    <div class="collapse submenu" id="menuResumenes">
+                        <ul class="nav flex-column">
+                            <li class="nav-item"><a class="nav-link" href="{% url 'resumen_mensual' %}">Balance Mensual</a></li>
+                            <li class="nav-item"><a class="nav-link" href="{% url 'resumen_general_anual' %}">General Anual</a></li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+            
+            <!-- PERFIL Y LOGOUT AL FONDO -->
+            <div class="mt-auto pt-4 border-top border-secondary">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                        <i class="bi bi-person fs-5 text-white"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-white">{{ user.username }}</div>
+                        <small class="text-white-50">Sesión activa</small>
+                    </div>
+                </div>
+                <a href="{% url 'logout' %}" class="btn btn-outline-light w-100 border-0 bg-white bg-opacity-10 text-white hover-bg-danger">
+                    <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                </a>
+            </div>
+        </div>
+    </div>
     
     <div class="container">
         {% if messages %}

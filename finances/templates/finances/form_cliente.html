@@ -4,10 +4,10 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
+    <div class="col-lg-9">
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-success text-white">
-                <h4>
+                <h4 class="mb-0">
                     {% if cliente %}
                         <i class="bi bi-pencil"></i> Editar Cliente
                     {% else %}
@@ -15,101 +15,116 @@
                     {% endif %}
                 </h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST">
                     {% csrf_token %}
                     
-                    <h5 class="border-bottom pb-2 mb-3">Datos Principales</h5>
+                    <h5 class="border-bottom pb-2 mb-3 text-muted"><i class="bi bi-person-lines-fill"></i> Datos Principales</h5>
                     
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-8">
-                            <label class="form-label">Nombre/Razón Social *</label>
-                            <input type="text" name="nombre" class="form-control" required
-                                   value="{{ cliente.nombre|default:'' }}">
+                            <label class="form-label small text-muted">Nombre/Razón Social *</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-building"></i></span>
+                                <input type="text" name="nombre" class="form-control" required autofocus
+                                       value="{{ cliente.nombre|default:'' }}" placeholder="Ej: Transportes SA">
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">CUIT/CUIL</label>
-                            <input type="text" name="cuit" class="form-control"
-                                   value="{{ cliente.cuit|default:'' }}">
+                            <label class="form-label small text-muted">CUIT/CUIL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
+                                <input type="text" name="cuit" class="form-control"
+                                       value="{{ cliente.cuit|default:'' }}" placeholder="20-12345678-9">
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label">Persona de Contacto</label>
-                            <input type="text" name="nombre_contacto" class="form-control"
-                                   value="{{ cliente.nombre_contacto|default:'' }}">
+                            <label class="form-label small text-muted">Persona de Contacto</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                                <input type="text" name="nombre_contacto" class="form-control"
+                                       value="{{ cliente.nombre_contacto|default:'' }}" placeholder="Nombre del contacto">
+                            </div>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Teléfono</label>
-                            <input type="text" name="telefono" class="form-control"
-                                   value="{{ cliente.telefono|default:'' }}">
+                            <label class="form-label small text-muted">Teléfono</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                                <input type="text" name="telefono" class="form-control"
+                                       value="{{ cliente.telefono|default:'' }}" placeholder="+54 11 ...">
+                            </div>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control"
-                                   value="{{ cliente.email|default:'' }}">
+                            <label class="form-label small text-muted">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                                <input type="email" name="email" class="form-control"
+                                       value="{{ cliente.email|default:'' }}" placeholder="correo@ejemplo.com">
+                            </div>
                         </div>
                     </div>
                     
-                    <h5 class="border-bottom pb-2 mb-3 mt-4">Dirección</h5>
+                    <h5 class="border-bottom pb-2 mb-3 mt-4 text-muted"><i class="bi bi-geo-alt"></i> Dirección</h5>
                     
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label">Dirección</label>
+                            <label class="form-label small text-muted">Dirección</label>
                             <input type="text" name="direccion" class="form-control"
-                                   value="{{ cliente.direccion|default:'' }}">
+                                   value="{{ cliente.direccion|default:'' }}" placeholder="Calle y número">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Ciudad</label>
+                            <label class="form-label small text-muted">Ciudad</label>
                             <input type="text" name="ciudad" class="form-control"
-                                   value="{{ cliente.ciudad|default:'' }}">
+                                   value="{{ cliente.ciudad|default:'' }}" placeholder="Ciudad">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">Provincia</label>
+                            <label class="form-label small text-muted">Provincia</label>
                             <input type="text" name="provincia" class="form-control"
-                                   value="{{ cliente.provincia|default:'' }}">
+                                   value="{{ cliente.provincia|default:'' }}" placeholder="Provincia">
                         </div>
                     </div>
                     
-                    <h5 class="border-bottom pb-2 mb-3 mt-4">Servicio</h5>
+                    <!-- Solo dejamos Cliente desde -->
+                    <h5 class="border-bottom pb-2 mb-3 mt-4 text-muted"><i class="bi bi-calendar-check"></i> Datos Adicionales</h5>
                     
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label class="form-label">Sistema</label>
-                            <input type="text" name="sistema" class="form-control"
-                                   value="{{ cliente.sistema|default:'' }}"
-                                   placeholder="Ej: Sistema de Concesionaria">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Plan</label>
-                            <input type="text" name="plan" class="form-control"
-                                   value="{{ cliente.plan|default:'' }}"
-                                   placeholder="Ej: Premium">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Cliente desde</label>
-                            <input type="date" name="fecha_inicio" class="form-control"
+                            <label class="form-label small text-muted">Cliente desde</label>
+                            <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
                                    value="{{ cliente.fecha_inicio|date:'Y-m-d'|default:'' }}">
                         </div>
                     </div>
                     
-                    <h5 class="border-bottom pb-2 mb-3 mt-4">Notas</h5>
+                    <h5 class="border-bottom pb-2 mb-3 mt-4 text-muted"><i class="bi bi-journal-text"></i> Notas</h5>
                     
-                    <div class="mb-3">
-                        <textarea name="notas" class="form-control" rows="3">{{ cliente.notas|default:'' }}</textarea>
+                    <div class="mb-4">
+                        <textarea name="notas" class="form-control" rows="3" placeholder="Información adicional, preferencias de pago, etc...">{{ cliente.notas|default:'' }}</textarea>
                     </div>
                     
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-success">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-grow-1">
                             <i class="bi bi-save"></i> 
-                            {% if cliente %}Actualizar{% else %}Guardar{% endif %} Cliente
+                            {% if cliente %}Actualizar Cliente{% else %}Guardar Cliente{% endif %}
                         </button>
-                        <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+                        <a href="{% url 'lista_clientes' %}" class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Si es un cliente nuevo (no hay fecha), le ponemos la fecha de hoy automáticamente
+    document.addEventListener("DOMContentLoaded", function() {
+        const fechaInput = document.getElementById('fecha_inicio');
+        if (fechaInput && !fechaInput.value) {
+            const hoy = new Date().toISOString().split('T')[0];
+            fechaInput.value = hoy;
+        }
+    });
+</script>
 {% endblock %}

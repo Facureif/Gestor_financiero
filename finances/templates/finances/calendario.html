@@ -1,0 +1,127 @@
+{% extends 'finances/base.html' %}
+
+{% block title %}Calendario - Gestor Financiero{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0"><i class="bi bi-calendar3 text-primary"></i> Calendario Financiero</h2>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <div id="calendario"></div>
+    </div>
+</div>
+
+<!-- MODAL DE DETALLE DEL EVENTO -->
+<div class="modal fade" id="eventoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" id="modalHeader">
+                <h5 class="modal-title" id="modalTitle">Detalle del Evento</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="bg-light rounded-circle p-3 me-3 fs-3" id="modalIcono">
+                        <!-- Icono dinámico -->
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold" id="modalDetalle">-</h5>
+                        <span class="badge" id="modalTipo">-</span>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Monto</small>
+                        <span class="fs-5 fw-bold" id="modalMonto">-</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Fecha</small>
+                        <span class="fw-bold" id="modalFecha">-</span>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <small class="text-muted d-block">Estado</small>
+                        <span class="badge bg-secondary" id="modalEstado">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <a href="#" class="btn btn-primary w-100" id="modalBtnLink">
+                    <i class="bi bi-pencil-square"></i> Ir al Formulario
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- CDN de FullCalendar -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendario');
+        
+        // Inicializamos el Modal de Bootstrap
+        const eventoModal = new bootstrap.Modal(document.getElementById('eventoModal'));
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'es',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,listMonth'
+            },
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                list: 'Lista'
+            },
+            events: "{% url 'api_eventos_calendario' %}",
+            
+            // ACÁ ESTÁ LA MAGIA: Capturamos el click en el evento
+            eventClick: function(info) {
+                info.jsEvent.preventDefault(); // Evita que haga cualquier cosa por defecto
+                
+                // Obtenemos los datos extra que mandamos desde Python
+                const props = info.event.extendedProps;
+                
+                // Actualizamos el contenido del Modal
+                document.getElementById('modalDetalle').textContent = info.event.title;
+                document.getElementById('modalMonto').textContent = props.monto;
+                document.getElementById('modalFecha').textContent = props.fecha;
+                document.getElementById('modalEstado').textContent = props.estado;
+                
+                // Configuramos el link del botón
+                document.getElementById('modalBtnLink').href = props.link;
+                
+                // Estilos dinámicos según si es cobro o gasto
+                const header = document.getElementById('modalHeader');
+                const icono = document.getElementById('modalIcono');
+                const tipoBadge = document.getElementById('modalTipo');
+                
+                if (props.tipo === 'cobro') {
+                    header.className = 'modal-header bg-success text-white';
+                    icono.innerHTML = '<i class="bi bi-cash-stack text-success"></i>';
+                    tipoBadge.className = 'badge bg-success';
+                    tipoBadge.textContent = 'Cobro / Ingreso';
+                } else {
+                    header.className = 'modal-header bg-danger text-white';
+                    icono.innerHTML = '<i class="bi bi-receipt text-danger"></i>';
+                    tipoBadge.className = 'badge bg-danger';
+                    tipoBadge.textContent = 'Gasto / Egreso';
+                }
+
+                // Mostramos el modal
+                eventoModal.show();
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %}

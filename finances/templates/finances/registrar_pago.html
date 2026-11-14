@@ -6,56 +6,70 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <div class="card">
+
+        <!-- NUEVO BOTÓN VOLVER -->
+        <div class="mb-3">
+            <a href="{% url 'lista_cobros' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Volver a Cobros
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-success text-white">
-                <h4><i class="bi bi-cash"></i> Registrar Pago</h4>
+                <h4 class="mb-0"><i class="bi bi-cash"></i> Registrar Pago</h4>
             </div>
+
             <div class="card-body">
                 <div class="text-center mb-4">
                     <h5>{{ cobro.nombre_cliente }}</h5>
-                    <p class="text-muted">{{ cobro.sistema }} - {{ cobro.plan }}</p>
+                    <!-- FIX: CAMBIAMOS SISTEMA Y PLAN POR CONCEPTO Y DETALLE -->
+                    <p class="text-muted">
+                        {% if cobro.concepto %}{{ cobro.concepto }}{% endif %}
+                        {% if cobro.concepto and cobro.detalle %} - {% endif %}
+                        {% if cobro.detalle %}{{ cobro.detalle }}{% endif %}
+                        {% if not cobro.concepto and not cobro.detalle %}Sin detalle{% endif %}
+                    </p>
                     
                     <div class="row mt-3">
                         <div class="col-6">
-                            <small>Total a cobrar</small>
+                            <small class="text-muted">Total a cobrar</small>
                             <h4>${{ cobro.monto_total|floatformat:0|intcomma }}</h4>
                         </div>
                         <div class="col-6">
-                            <small>Saldo pendiente</small>
+                            <small class="text-muted">Saldo pendiente</small>
                             <h4 class="text-danger">${{ cobro.saldo|floatformat:0|intcomma }}</h4>
                         </div>
                     </div>
                     
                     {% if cobro.monto_pagado > 0 %}
-                    <div class="progress mt-2" style="height: 20px;">
-                        <div class="progress-bar bg-success" style="width: {{ cobro.porcentaje_pagado|floatformat:0 }}%">
-                            {{ cobro.porcentaje_pagado|floatformat:0 }}%
-                        </div>
+                    <div class="progress mt-2" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: {{ cobro.porcentaje_pagado|floatformat:0 }}%"></div>
                     </div>
+                    <small class="text-muted mt-1 d-block">Ya pagado: ${{ cobro.monto_pagado|floatformat:0|intcomma }}</small>
                     {% endif %}
                 </div>
                 
-                <form method="POST">
+                <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     
                     <div class="mb-3">
                         <label class="form-label">Monto a registrar *</label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
+                            <!-- FIX: max para que el navegador no deje poner más del saldo -->
                             <input type="number" name="monto_pagado" class="form-control" 
-                                   step="0.01" value="{{ cobro.saldo }}" required>
+                                   step="0.01" min="0.01" max="{{ cobro.saldo }}" value="{{ cobro.saldo }}" required>
                         </div>
-                        <small class="text-muted">Saldo pendiente: ${{ cobro.saldo|floatformat:0|intcomma }}</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Comprobante de pago</label>
+                        <label class="form-label">Comprobante de pago (Opcional)</label>
                         <input type="file" name="comprobante" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-success btn-lg">
                             <i class="bi bi-check-lg"></i> Confirmar Pago
                         </button>
-                        <a href="{% url 'lista_cobros' %}" class="btn btn-secondary">Cancelar</a>
+                        <a href="{% url 'lista_cobros' %}" class="btn btn-outline-secondary">Cancelar</a>
                     </div>
                 </form>
             </div>

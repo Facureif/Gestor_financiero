@@ -51,15 +51,19 @@ def registro_view(request):
 def crear_categorias_default(user):
     """Crea categorías iniciales para un usuario nuevo"""
     categorias = [
+        # Ingresos
         {'nombre': 'Suscripción SaaS', 'tipo': 'ingreso', 'icono': '💻', 'color': '#27ae60'},
         {'nombre': 'Salario', 'tipo': 'ingreso', 'icono': '💰', 'color': '#2ecc71'},
+        
+        # Gastos
         {'nombre': 'Servicios', 'tipo': 'gasto', 'icono': '⚡', 'color': '#f39c12'},
+        {'nombre': 'Suscripciones', 'tipo': 'gasto', 'icono': '🔔', 'color': '#9b59b6'},
         {'nombre': 'Impuestos', 'tipo': 'gasto', 'icono': '📋', 'color': '#c0392b'},
         {'nombre': 'Alquiler', 'tipo': 'gasto', 'icono': '🏠', 'color': '#e74c3c'},
-        {'nombre': 'Suscripciones', 'tipo': 'gasto', 'icono': '🔔', 'color': '#9b59b6'},
-        {'nombre': 'Supermercado', 'tipo': 'gasto', 'icono': '🛒', 'color': '#e67e22'},
-        {'nombre': 'Salud', 'tipo': 'gasto', 'icono': '🏥', 'color': '#e91e63'},
+        {'nombre': 'Comida', 'tipo': 'gasto', 'icono': '🍔', 'color': '#e67e22'},
         {'nombre': 'Transporte', 'tipo': 'gasto', 'icono': '🚌', 'color': '#95a5a6'},
+        {'nombre': 'Salud', 'tipo': 'gasto', 'icono': '🏥', 'color': '#e91e63'},
+        {'nombre': 'Ocio', 'tipo': 'gasto', 'icono': '🎉', 'color': '#3498db'},
         {'nombre': 'Varios', 'tipo': 'gasto', 'icono': '📦', 'color': '#795548'},
     ]
     
@@ -76,6 +80,7 @@ def crear_categorias_default(user):
             }
         )
 
+        
 def logout_view(request):
     """Cerrar sesión"""
     logout(request)
